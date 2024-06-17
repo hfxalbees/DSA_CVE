@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ filename }} Content</title>
+</head>
+<body>
+    <h2>{{ filename }} Content</h2>
+    <div>
+        {{ data | safe }}  <!-- Use 'safe' filter to render HTML content -->
+    </div>
+</body>
+</html>
