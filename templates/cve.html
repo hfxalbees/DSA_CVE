@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CVE Exploited by Ransomware Gangs</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+      body {
+        padding-top: 50px;
+      }
+      .table-responsive {
+        margin-top: 20px;
+      }
+      .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+      }
+      .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
+      <a class="navbar-brand" href="/">CVE Ransomware Data App</a>
+    </nav>
+    <div class="container">
+      <h1 class="my-4">CVE Exploited by Ransomware Gangs</h1>
+      <form method="get" action="/cve">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="sort_by">Sort By:</label>
+            <select class="form-control" id="sort_by" name="sort_by">
+              <option value="CVE ID">CVE ID</option>
+              <option value="Ransomware Group Association">Ransomware Group</option>
+              <option value="Count">Count</option>
+            </select>
+          </div>
+          <div class="form-group col-md-6 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Sort</button>
+          </div>
+        </div>
+      </form>
+      <div class="table-responsive">
+        {% for table in tables %}
+          {{ table|safe }}
+        {% endfor %}
+      </div>
+      <div class="my-4">
+        <h2>Visualization of CVE Data</h2>
+        <img src="/plot" alt="CVE Plot" class="img-fluid">
+      </div>
+    </div>
+  </body>
+</html>
