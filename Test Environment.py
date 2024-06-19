@@ -10,7 +10,6 @@ file_list = file.values.tolist()
 
 
 # Create a function for the respective sorting algorithm.
-
 def selection_sort(input_list):
     # Store the current time value.
     starting_time = time.perf_counter()
