@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, url_for
 from CleaningScripts import TopRansomwareGang
 
 app = Flask(__name__)
@@ -8,8 +8,8 @@ app = Flask(__name__)
 file_path = 'CVE data/CVE_Data_2023.xlsx'  # Replace with your actual file path
 
 # Load the processed data at the top of the script so it is accessible globally
-# processed_file_path = r'C:\Users\XPS\Desktop\DSA Project\Flask App\DSA_CVE\CleaningScripts\processed_cve_data.csv'
-# df = pd.read_csv(processed_file_path)
+processed_file_path = r'CleaningScripts\processed_cve_data.csv'
+df = pd.read_csv(processed_file_path)
 
 ransomware_file_path = r'CVE data\SIT Ransomware CVE List + URL.xlsx'
 ransomware_df = pd.read_excel(ransomware_file_path)
@@ -26,15 +26,22 @@ def cve():
 
 @app.route('/topRansomwareGang')
 def topRansomwareGroup():
+    TopRansomwareGang.plot_top_ransomware_groups(ransomware_file_path)
     sorted_groups = TopRansomwareGang.get_sorted_ransomware_groups(ransomware_file_path)
     html_table = sorted_groups.head(10).to_html(classes='data', header="true", index=False)
-    return render_template('topRansomwareGang.html', tables=html_table)
+    return render_template('topRansomwareGang.html', tables=html_table, image_url=url_for('static', filename='images/top_ransomware_groups.png'))
+
+@app.route('/ransomware_plot')
+def ransomware_plot():
+    TopRansomwareGang.plot_top_ransomware_groups(ransomware_file_path)
+    return send_file('/static/images/TopRansomwareGang.png', mimetype='image/png')
 
 
 @app.route('/plot')
 def plot():
     plot_path = r'C:\Users\XPS\Desktop\DSA Project\Flask App\DSA_CVE\CleaningScripts\cve_plot.png'
     return send_file(plot_path, mimetype='image/png')
+
 
 @app.route('/2023')
 def view():
