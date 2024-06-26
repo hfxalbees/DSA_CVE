@@ -27,9 +27,12 @@ def cve():
 @app.route('/topRansomwareGang')
 def topRansomwareGroup():
     TopRansomwareGang.plot_top_ransomware_groups(ransomware_file_path)
-    sorted_groups = TopRansomwareGang.get_sorted_ransomware_groups(ransomware_file_path)
+    sorted_groups, sort_time_ms = TopRansomwareGang.get_sorted_ransomware_groups(ransomware_file_path)
     html_table = sorted_groups.head(10).to_html(classes='data', header="true", index=False)
-    return render_template('topRansomwareGang.html', tables=html_table, image_url=url_for('static', filename='images/top_ransomware_groups.png'))
+
+    # You can also log it here if it's not showing in the console
+    app.logger.info(f"Sort time: {sort_time_ms} ms")
+    return render_template('topRansomwareGang.html', tables=html_table, sort_time=sort_time_ms, image_url=url_for('static', filename='images/top_ransomware_groups.png'))
 
 @app.route('/ransomware_plot')
 def ransomware_plot():
