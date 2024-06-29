@@ -50,6 +50,7 @@ def plot():
 def pigeonHoleSort():
     try:
         # Read the file using pandas
+        print("Reading data from excel...")
         CVE_file_path = r'CVE data\updated_cve_list.xlsx'
         data = pd.read_excel(CVE_file_path)
 
