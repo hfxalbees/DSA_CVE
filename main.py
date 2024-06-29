@@ -60,11 +60,14 @@ def pigeonHoleSort():
         sorted_file_path = 'Sorted CVE/PigeonHoleSort.xlsx'
         sorted_df.to_excel(sorted_file_path, index=False)
 
-        return render_template('PigeonHoleSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_file=sorted_file_path)
+        return render_template('pigeonHoleSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_file=sorted_file_path)
 
     except Exception as e:
         return f'Error processing file: {str(e)}'
-
+    
+@app.route('/selectionSort')
+def selectionSort():
+    return render_template('selectionSort.html')
 
 @app.route('/2023')
 def view():
