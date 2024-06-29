@@ -1,11 +1,11 @@
 import pandas as pd
 from flask import Flask, render_template, request, send_file, url_for
 from CleaningScripts import TopRansomwareGang
+from SortingAlgo import PigeonHoleSort 
 
 app = Flask(__name__)
 
-# Define the path to your file
-file_path = 'CVE data/CVE_Data_2023.xlsx'  # Replace with your actual file path
+file_path = 'CVE data/CVE_Data_2023.xlsx'
 
 # Load the processed data at the top of the script so it is accessible globally
 processed_file_path = r'CleaningScripts\processed_cve_data.csv'
@@ -13,6 +13,7 @@ df = pd.read_csv(processed_file_path)
 
 ransomware_file_path = r'CVE data\SIT Ransomware CVE List + URL.xlsx'
 ransomware_df = pd.read_excel(ransomware_file_path)
+
 
 @app.route('/') 
 def index(): 
@@ -44,6 +45,25 @@ def ransomware_plot():
 def plot():
     plot_path = r'C:\Users\XPS\Desktop\DSA Project\Flask App\DSA_CVE\CleaningScripts\cve_plot.png'
     return send_file(plot_path, mimetype='image/png')
+
+@app.route('/pigeonHoleSort')
+def pigeonHoleSort():
+    try:
+        # Read the file using pandas
+        CVE_file_path = r'CVE data\updated_cve_list.xlsx'
+        data = pd.read_excel(CVE_file_path)
+
+        # Perform pigeonhole sort
+        sorted_df, elapsed_time, mem_used = PigeonHoleSort.pigeonhole_sort_with_dataframe(data, PigeonHoleSort.custom_sort_key, data.columns[0])
+
+        # Save the sorted DataFrame to a new Excel file
+        sorted_file_path = 'Sorted CVE/PigeonHoleSort.xlsx'
+        sorted_df.to_excel(sorted_file_path, index=False)
+
+        return render_template('PigeonHoleSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_file=sorted_file_path)
+
+    except Exception as e:
+        return f'Error processing file: {str(e)}'
 
 
 @app.route('/2023')
