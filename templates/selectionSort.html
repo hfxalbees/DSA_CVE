@@ -1,10 +1,18 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <title>Selection Sort</title> 
-</head> 
-<body> 
-<h1>Selection Sort</h1> 
-</body> 
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Selection Sort Results</title>
+  </head>
+  <body>
+    <div>
+      <h1>Selection Sort Results</h1>
+      {% if elapsed_time %}
+        <p>Sorting completed in {{ elapsed_time }} seconds.</p>
+        <p>Memory used: {{ mem_used }} MB</p>
+        <p><a href="{{ sorted_file }}" download>Download Sorted File</a></p>
+      {% endif %}
+    </div>
+  </body>
 </html>

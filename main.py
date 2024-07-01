@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import Flask, render_template, request, send_file, url_for
 from CleaningScripts import TopRansomwareGang
-from SortingAlgo import PigeonHoleSort 
+from SortingAlgo import PigeonHoleSort , SelectionSort
 
 app = Flask(__name__)
 
@@ -51,7 +51,7 @@ def pigeonHoleSort():
     try:
         # Read the file using pandas
         print("Reading data from excel...")
-        CVE_file_path = r'CVE data\updated_cve_list.xlsx'
+        CVE_file_path = r'CVE data\filtered_cve_list.xlsx'
         data = pd.read_excel(CVE_file_path)
 
         # Perform pigeonhole sort
@@ -60,15 +60,36 @@ def pigeonHoleSort():
         # Save the sorted DataFrame to a new Excel file
         sorted_file_path = 'Sorted CVE/PigeonHoleSort.xlsx'
         sorted_df.to_excel(sorted_file_path, index=False)
+        print(f"Sorted file saved to {sorted_file_path}")
+
+        # sorted_data_html = sorted_df.to_html(classes='table table-striped table-bordered', index=False)
 
         return render_template('pigeonHoleSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_file=sorted_file_path)
+        # return render_template('pigeonHoleSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_data_html=sorted_data_html)
 
     except Exception as e:
         return f'Error processing file: {str(e)}'
     
 @app.route('/selectionSort')
 def selectionSort():
-    return render_template('selectionSort.html')
+    try:
+        # Read the file using pandas
+        print("Reading data from excel...")
+        CVE_file_path = r'CVE data\filtered_cve_list.xlsx'
+        data = pd.read_excel(CVE_file_path)
+
+        # Perform selection sort
+        sorted_df, elapsed_time, mem_used = SelectionSort.selection_sort_with_dataframe(data, SelectionSort.custom_sort_key, data.columns[0])
+
+        # Save the sorted DataFrame to a new Excel file
+        sorted_file_path = 'Sorted CVE/SelectionSort.xlsx'
+        sorted_df.to_excel(sorted_file_path, index=False)
+        print(f"Sorted file saved to {sorted_file_path}")
+
+        return render_template('selectionSort.html', elapsed_time=elapsed_time, mem_used=mem_used, sorted_file=sorted_file_path)
+
+    except Exception as e:
+        return f'Error processing file: {str(e)}'
 
 @app.route('/2023')
 def view():
