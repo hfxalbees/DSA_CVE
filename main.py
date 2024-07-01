@@ -51,7 +51,7 @@ def pigeonHoleSort():
     try:
         # Read the file using pandas
         print("Reading data from excel...")
-        CVE_file_path = r'CVE data\filtered_cve_list.xlsx'
+        CVE_file_path = r'CVE data\small_set_for_testing.xlsx'
         data = pd.read_excel(CVE_file_path)
 
         # Perform pigeonhole sort
@@ -75,7 +75,7 @@ def selectionSort():
     try:
         # Read the file using pandas
         print("Reading data from excel...")
-        CVE_file_path = r'CVE data\filtered_cve_list.xlsx'
+        CVE_file_path = r'CVE data\small_set_for_testing.xlsx'
         data = pd.read_excel(CVE_file_path)
 
         # Perform selection sort
