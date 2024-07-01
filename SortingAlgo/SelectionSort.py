@@ -44,27 +44,27 @@ def selection_sort_with_dataframe(df, key_func, column_name):
 
     return df, elapsed_time, mem_used
 
-# # Test the selection sort function
-# if __name__ == "__main__":
-#     try:
-#         # Read the file using pandas
-#         print("Reading data from excel...")
-#         CVE_file_path = r'CVE data/filtered_cve_list.xlsx'  # Adjust the path as needed
-#         data = pd.read_excel(CVE_file_path)
-#         print("Data read successfully.")
+# Test the selection sort function
+if __name__ == "__main__":
+    try:
+        # Read the file using pandas
+        print("Reading data from excel...")
+        CVE_file_path = r'CVE data\small_set_for_testing.xlsx'  # Adjust the path as needed
+        data = pd.read_excel(CVE_file_path)
+        print("Data read successfully.")
 
-#         # Perform selection sort
-#         sorted_df, elapsed_time, mem_used = selection_sort_with_dataframe(data, custom_sort_key, data.columns[0])
+        # Perform selection sort
+        sorted_df, elapsed_time, mem_used = selection_sort_with_dataframe(data, custom_sort_key, data.columns[0])
 
-#         # Print the sorted DataFrame and the metrics
-#         print(sorted_df.head())
-#         print(f"Sorting completed in {elapsed_time:.2f} seconds.")
-#         print(f"Memory used: {mem_used:.2f} MB")
+        # Print the sorted DataFrame and the metrics
+        print(sorted_df.head())
+        print(f"Sorting completed in {elapsed_time:.2f} seconds.")
+        print(f"Memory used: {mem_used:.2f} MB")
 
-#         # Save the sorted DataFrame to a new Excel file for verification
-#         sorted_file_path = 'Sorted CVE/SelectionSort.xlsx'
-#         sorted_df.to_excel(sorted_file_path, index=False)
-#         print(f"Sorted file saved to {sorted_file_path}")
+        # Save the sorted DataFrame to a new Excel file for verification
+        sorted_file_path = 'Sorted CVE/SelectionSort.xlsx'
+        sorted_df.to_excel(sorted_file_path, index=False)
+        print(f"Sorted file saved to {sorted_file_path}")
 
-#     except Exception as e:
-#         print(f'Error processing file: {str(e)}')
+    except Exception as e:
+        print(f'Error processing file: {str(e)}')
