@@ -1,5 +1,4 @@
 import time
-
 import pandas
 
 excel_file = pandas.read_excel("C:/Users/wenzh/Downloads/Input_Data.xlsx").values.tolist()
