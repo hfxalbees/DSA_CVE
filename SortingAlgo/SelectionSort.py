@@ -1,70 +1,79 @@
 import pandas as pd
 import time
-import psutil
 
-def custom_sort_key(s):
-    """Convert a string like '1999-0001' to a tuple (1999, 1) for sorting."""
-    parts = s.split('-')
-    return (int(parts[0]), int(parts[1]))
+# Read the Excel file and convert it to a list of lists
+print("Reading excel file...")
+excel_file = pd.read_excel("CVE data/FINAL_DATASET.xlsx").values.tolist()
+print("Excel file read successfully.")
 
-def selection_sort_with_dataframe(df, key_func, column_name):
-    start_time = time.time()
-    process = psutil.Process()
-    mem_before = process.memory_info().rss
-    print("Sorting started...")
+# Initialize an empty list to store the lengths of the CVE IDs
+cve_id_length = []
 
-    # Extract the column to sort by and apply the key function
-    a = df[column_name].apply(key_func).tolist()
-    sizeOfArray = len(a)
-    
-    print(f"Number of elements to sort: {sizeOfArray}")
+# Calculate the length of each CVE ID and store it in cve_id_length
+print("Calculating lengths of CVE IDs...")
+for entry in excel_file:
+    cve_id_length.append(len(entry[0]))
 
-    for i in range(sizeOfArray):
-        minPosition = i
-        for j in range(i + 1, sizeOfArray):
-            if a[j] < a[minPosition]:
-                minPosition = j
+# Determine the maximum length of the CVE IDs
+maximum_cve_id_length = max(cve_id_length)
+print(f"Maximum CVE ID length is {maximum_cve_id_length}.")
+
+# Pad the CVE IDs with zeros to make them all the same length
+print("Padding CVE IDs with zeros...")
+for i in range(len(excel_file)):
+    while len(excel_file[i][0]) < maximum_cve_id_length:
+        cve_id_string = list(excel_file[i][0])
+        cve_id_string.insert(5, "0")
+        cve_id_string = "".join(cve_id_string)
+        excel_file[i][0] = cve_id_string
+print("Padding completed.")
+
+# Convert padded CVE IDs to integers for sorting
+print("Converting padded CVE IDs to integers...")
+for i in range(len(excel_file)):
+    excel_file[i][0] = int(excel_file[i][0].replace("-", ""))
+print("Conversion completed.")
+
+# Define the Selection Sort function
+def selection_sort(input_data):
+    start = time.time()
+    print("Selection sort started...")
+
+    size_of_array = len(input_data)
+    print(f"Number of elements to sort: {size_of_array}")
+
+    for i in range(size_of_array):
+        min_position = i
+        for j in range(i + 1, size_of_array):
+            if input_data[j][0] < input_data[min_position][0]:
+                min_position = j
         # swap in the list
-        a[i], a[minPosition] = a[minPosition], a[i]
-        # swap in the dataframe
-        df.iloc[i], df.iloc[minPosition] = df.iloc[minPosition].copy(), df.iloc[i].copy()
+        input_data[i], input_data[min_position] = input_data[min_position], input_data[i]
         if i % 100 == 0:
-            print(f"Progress: {i}/{sizeOfArray} elements sorted...")
+            print(f"Progress: {i}/{size_of_array} elements sorted...")
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    mem_after = process.memory_info().rss
-    mem_used = mem_after - mem_before
+    end = time.time()
+    print("Selection sort completed.")
+    return input_data, "Selection Sort", (end - start)
 
-    elapsed_time = round(elapsed_time, 2)
-    mem_used = round(mem_used / (1024 * 1024), 2)
+# Call the Selection Sort function and capture the result
+print("Sorting started...")
+sorted_data, algorithm_type, time_elapsed = selection_sort(excel_file)
+print("Sorting completed.")
 
-    print(f"Sorting completed in {elapsed_time:.2f} seconds.")
-    print(f"Memory used: {mem_used:.2f} MB")
+# Convert sorted data back to a DataFrame
+print("Converting sorted data back to DataFrame...")
+sorted_data_df = pd.DataFrame(sorted_data)
+print("Conversion completed.")
 
-    return df, elapsed_time, mem_used
+# Define the output Excel file path
+output_excel_file = "Sorted CVE/SelectionSort.xlsx"
 
-# # Test the selection sort function
-# if __name__ == "__main__":
-#     try:
-#         # Read the file using pandas
-#         print("Reading data from excel...")
-#         CVE_file_path = r'CVE data\small_set_for_testing.xlsx'  # Adjust the path as needed
-#         data = pd.read_excel(CVE_file_path)
-#         print("Data read successfully.")
+# Save the sorted data to Excel
+print("Saving sorted data to Excel file...")
+sorted_data_df.to_excel(output_excel_file, index=False)
+print(f"Sorted data saved to {output_excel_file}")
 
-#         # Perform selection sort
-#         sorted_df, elapsed_time, mem_used = selection_sort_with_dataframe(data, custom_sort_key, data.columns[0])
-
-#         # Print the sorted DataFrame and the metrics
-#         print(sorted_df.head())
-#         print(f"Sorting completed in {elapsed_time:.2f} seconds.")
-#         print(f"Memory used: {mem_used:.2f} MB")
-
-#         # Save the sorted DataFrame to a new Excel file for verification
-#         sorted_file_path = 'Sorted CVE/SelectionSort.xlsx'
-#         sorted_df.to_excel(sorted_file_path, index=False)
-#         print(f"Sorted file saved to {sorted_file_path}")
-
-#     except Exception as e:
-#         print(f'Error processing file: {str(e)}')
+# Print the results
+print("Algorithm Type:", algorithm_type)
+print("Time Elapsed: %0.5f ms" % (time_elapsed * 1000))

@@ -1,78 +1,71 @@
-import pandas as pd
 import time
-import psutil
+import pandas as pd
 
-def custom_sort_key(s):
-    """Convert a string like '1999-0095' to a tuple (1999, 95) for sorting."""
-    parts = s.split('-')
-    return (int(parts[0]), int(parts[1]))
+# Read the Excel file and convert it to a list of lists
+print("Reading excel file...")
+excel_file = pd.read_excel("CVE data/FINAL_DATASET.xlsx").values.tolist()
 
-def pigeonhole_sort_with_dataframe(df, key_func, column_name):
-    start_time = time.time()
-    process = psutil.Process()
-    mem_before = process.memory_info().rss
-    print("Sorting started...")
+# Initialize an empty list to store the lengths of the CVE IDs
+cve_id_length = []
 
-    # Extract the column to sort by
-    a = df[column_name].tolist()
+# Calculate the length of each CVE ID and store it in cve_id_length
+for entry in excel_file:
+    cve_id_length.append(len(entry[0]))
 
-    # Apply the key function to convert each element to a sortable tuple
-    converted = [key_func(x) for x in a]
-    
+# Determine the maximum length of the CVE IDs
+maximum_cve_id_length = max(cve_id_length)
+
+# Pad the CVE IDs with zeros to make them all the same length
+for i in range(len(excel_file)):
+    while len(excel_file[i][0]) < maximum_cve_id_length:
+        cve_id_string = list(excel_file[i][0])
+        cve_id_string.insert(5, "0")
+        cve_id_string = "".join(cve_id_string)
+        excel_file[i][0] = cve_id_string
+
+# Convert padded CVE IDs to integers for sorting
+for i in range(len(excel_file)):
+    excel_file[i][0] = int(excel_file[i][0].replace("-", ""))
+
+# Define the Pigeonhole Sort function
+def pigeonhole_sort(input_data):
+    start = time.time()
+
     # Find the range of the values
-    min_val = min(converted)
-    max_val = max(converted)
-    range_size = max_val[0] - min_val[0] + 1  # only considering first part of tuple for pigeonholes
+    min_val = min(input_data, key=lambda x: x[0])[0]
+    max_val = max(input_data, key=lambda x: x[0])[0]
+    range_size = max_val - min_val + 1
 
     # Create pigeonholes
     holes = [[] for _ in range(range_size)]
 
     # Populate the pigeonholes with indices
-    for i, x in enumerate(converted):
-        index = x[0] - min_val[0]
-        holes[index].append((x, i))
+    for entry in input_data:
+        index = entry[0] - min_val
+        holes[index].append(entry)
 
-    # Sort each pigeonhole and flatten the list
-    sorted_indices = []
+    # Flatten the list
+    sorted_data = []
     for hole in holes:
-        hole.sort()
-        sorted_indices.extend([i for _, i in hole])
+        sorted_data.extend(hole)
 
-    # Rearrange the DataFrame based on sorted indices
-    sorted_df = df.iloc[sorted_indices]
+    end = time.time()
+    return sorted_data, "Pigeonhole Sort", (end - start)
 
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    mem_after = process.memory_info().rss
-    mem_used = mem_after - mem_before
+# Call the Pigeonhole Sort function and capture the result
+print("Sorting started...")
+sorted_data, algorithm_type, time_elapsed = pigeonhole_sort(excel_file)
 
-    elapsed_time = round(elapsed_time, 2)
-    mem_used = round(mem_used / (1024 * 1024), 2)
+# Convert sorted data back to a DataFrame
+sorted_data_df = pd.DataFrame(sorted_data)
 
-    print(f"Sorting completed in {elapsed_time:.2f} seconds.")
-    print(f"Memory used: {mem_used:.2f} MB")
-    
-    return sorted_df, elapsed_time, mem_used
+# Define the output Excel file path
+output_excel_file = "Sorted CVE/PigeonHoleSort.xlsx"
 
-if __name__ == "__main__":
-    try:
-        # Read the file using pandas
-        print("Reading data from excel...")
-        CVE_file_path = r'CVE data\small_set_for_testing.xlsx'  # Adjust the path as needed
-        data = pd.read_excel(CVE_file_path)
+# Save the sorted data to Excel
+sorted_data_df.to_excel(output_excel_file, index=False)
 
-        # Perform selection sort
-        sorted_df, elapsed_time, mem_used = pigeonhole_sort_with_dataframe(data, custom_sort_key, data.columns[0])
-
-        # Print the sorted DataFrame and the metrics
-        print(sorted_df.head())
-        print(f"Sorting completed in {elapsed_time:.2f} seconds.")
-        print(f"Memory used: {mem_used:.2f} MB")
-
-        # Save the sorted DataFrame to a new Excel file for verification
-        sorted_file_path = 'Sorted CVE/PigeonHoleSort.xlsx'
-        sorted_df.to_excel(sorted_file_path, index=False)
-        print(f"Sorted file saved to {sorted_file_path}")
-
-    except Exception as e:
-        print(f'Error processing file: {str(e)}')
+# Print the results
+print("Algorithm Type:", algorithm_type)
+print("Time Elapsed: %0.5f ms" % (time_elapsed * 1000))
+print(f"Sorted data saved to {output_excel_file}")

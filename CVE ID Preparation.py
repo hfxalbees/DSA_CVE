@@ -1,6 +1,6 @@
 import pandas
 
-excel_file = pandas.read_excel("C:/Users/wenzh/Downloads/Input_Data.xlsx").values.tolist()
+excel_file = pandas.read_excel("CVE data/small_set_for_testing.xlsx").values.tolist()
 cve_id_length = []
 
 for entry in excel_file:
