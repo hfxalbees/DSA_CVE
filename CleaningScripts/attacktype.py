@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the cleaned dataset
-file_path = 'cleaned_CVE_Data_2015_onwards.xlsx'
+file_path = 'CLEANED_DATASET.xlsx'
 data = pd.read_excel(file_path)
 
 # Define a function to classify the attack type based on keywords
@@ -18,6 +18,7 @@ def classify_attack_type(description):
         'Broken Access Control': ['access control'],
         'Directory Traversal': ['directory', 'traversal'],
         'Authentication Bypass': ['authentication bypass'],
+        'XXE': ['xxe'],
         # Add more attack types and their keywords here
     }
     
@@ -32,7 +33,7 @@ def classify_attack_type(description):
 data['Attack Type'] = data['Description'].apply(classify_attack_type)
 
 # Save the updated dataset to a new Excel file
-updated_file_path = 'updated_CVE_Data_with_Attack_Type.xlsx'
+updated_file_path = 'FINAL_DATASET.xlsx'
 data.to_excel(updated_file_path, index=False)
 
 # Confirming file is created
