@@ -62,8 +62,12 @@ df = pandas.read_excel(excel_file)
 
 bst_root = None
 bst_root = insert_excel_data_into_bst(bst_root, df)
-search_substring = "2015-0918"
-algorithm_type, time_elapsed = search_substring_in_excel_bst(bst_root, search_substring)
+search_substring = "2015-99"
 
-print("Algorithm Type:", algorithm_type)
-print("Time Elapsed: %0.5f" % time_elapsed, "ms")
+try:
+    algorithm_type, time_elapsed = search_substring_in_excel_bst(bst_root, search_substring)
+    print("Algorithm Type:", algorithm_type)
+    print("Time Elapsed: %0.5f" % time_elapsed, "ms")
+
+except TypeError:
+    print("No matching search string.")
