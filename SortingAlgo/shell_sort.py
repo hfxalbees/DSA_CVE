@@ -1,51 +1,62 @@
-import pandas as pd
 import time
+import pandas as pd
 
-# Load the Excel file
-file_path = 'updated_CVE_Data_with_Attack_Type.xlsx'
-df = pd.read_excel(file_path)
+# Read the Excel file and convert it to a list of lists
+excel_file = pd.read_excel("D:/SIT University/Y1T3/Data Structure and Algorithm/Project/FINAL_DATASET.xlsx").values.tolist()
 
-# Define a function to extract the year and id from a CVE ID
-def extract_year_id(cve_id):
-    parts = cve_id.split('-')
-    year = int(parts[1])
-    cve_id = int(parts[2])
-    return year, cve_id
+# Initialize an empty list to store the lengths of the CVE IDs
+cve_id_length = []
 
-# Define Shell Sort function for CVE IDs
-def shell_sort_cve(cve_list):
-    n = len(cve_list)
-    gap = n // 2
+# Calculate the length of each CVE ID and store it in cve_id_length
+for entry in excel_file:
+    cve_id_length.append(len(entry[0]))
+
+# Determine the maximum length of the CVE IDs
+maximum_cve_id_length = max(cve_id_length)
+
+# Pad the CVE IDs with zeros to make them all the same length
+for i in range(len(excel_file)):
+    while len(excel_file[i][0]) < maximum_cve_id_length:
+        cve_id_string = list(excel_file[i][0])
+        cve_id_string.insert(5, "0")
+        cve_id_string = "".join(cve_id_string)
+        excel_file[i][0] = cve_id_string
+
+# Define the Shell Sort function
+def shell_sort(input_data):
+    start = time.time()
+    input_data_length = len(input_data)
+    gap = input_data_length // 2  # Start with a large gap size
+    
     while gap > 0:
-        for i in range(gap, n):
-            temp = cve_list[i]
-            temp_year_id = extract_year_id(temp['CVE ID'])
+        for i in range(gap, input_data_length):
+            temp = input_data[i]
             j = i
-            while j >= gap and extract_year_id(cve_list[j - gap]['CVE ID']) > temp_year_id:
-                cve_list[j] = cve_list[j - gap]
+            
+            while j >= gap and input_data[j - gap] > temp:
+                input_data[j] = input_data[j - gap]
                 j -= gap
-            cve_list[j] = temp
-        gap //= 2
+            
+            input_data[j] = temp
+        
+        gap //= 2  # Reduce the gap size
+    
+    end = time.time()
+    return "Shell Sort", (end - start)
 
-# Timing the sort operation for CVE IDs using Shell Sort
-start_time = time.time()
+# Call the Shell Sort function and capture the result
+algorithm_type, time_elapsed = shell_sort(excel_file)
 
-# Convert DataFrame to a list of dictionaries for sorting
-cve_list = df.to_dict('records')
+# Convert sorted data back to a DataFrame
+sorted_data_df = pd.DataFrame(excel_file)
 
-# Perform Shell Sort on CVE IDs
-shell_sort_cve(cve_list)
+# Define the output Excel file path
+output_excel_file = "D:/SIT University/Y1T3/Data Structure and Algorithm/Project/shell_sorted_cve_list.xlsx"
 
-# Convert sorted list back to DataFrame
-sorted_df = pd.DataFrame(cve_list)
+# Save the sorted data to Excel
+sorted_data_df.to_excel(output_excel_file, index=False)
 
-# Save sorted DataFrame to Excel
-output_excel_file = 'CVE_ID_Sorted_Shell.xlsx'
-sorted_df.to_excel(output_excel_file, index=False)
-
-# Calculate elapsed time
-shell_sort_time = time.time() - start_time
-
-# Print the timing results
-print(f"Time taken to sort by CVE ID using Shell Sort: {shell_sort_time:.4f} seconds")
-print(f"Sorted Excel with all columns saved to '{output_excel_file}'")
+# Print the results
+print("Algorithm Type:", algorithm_type)
+print("Time Elapsed: %0.5f ms" % (time_elapsed * 1000))
+print(f"Sorted data saved to {output_excel_file}")
