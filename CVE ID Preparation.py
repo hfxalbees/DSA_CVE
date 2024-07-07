@@ -17,4 +17,4 @@ for i in range(len(excel_file)):
         cve_id_string = "".join(cve_id_string)
         excel_file[i][0] = cve_id_string
 
-cleaned_excel_file = pandas.DataFrame(excel_file, columns = excel_file_columns).to_excel("C:/Users/wenzh/Downloads/Dataset_New.xlsx")
+cleaned_excel_file = pandas.DataFrame(excel_file, columns = excel_file_columns).to_excel("C:/Users/wenzh/Downloads/Dataset_Cleaned.xlsx")
