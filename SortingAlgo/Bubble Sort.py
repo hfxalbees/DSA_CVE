@@ -1,36 +1,36 @@
-import time
-import pandas
-
-excel_file = pandas.read_excel("C:/Users/wenzh/Downloads/Input_Data.xlsx").values.tolist()
-cve_id_length = []
-
-for entry in excel_file:
-    cve_id_length.append(len(entry[0]))
-
-maximum_cve_id_length = max(cve_id_length)
-
-for i in range(len(excel_file)):
-    while len(excel_file[i][0]) < maximum_cve_id_length:
-        cve_id_string = list(excel_file[i][0])
-        cve_id_string.insert(5, "0")
-        cve_id_string = "".join(cve_id_string)
-        excel_file[i][0] = cve_id_string
+import pandas as pd
 
 
-def bubble_sort(input_data):
-    start = time.time()
-    input_data_length = len(input_data)
+def bubble_sort(data, column_name):
+    n = len(data)
 
-    for i in range(input_data_length):
-        for j in range(0, input_data_length - i - 1):
-            if input_data[j] > input_data[j + 1]:
-                input_data[j], input_data[j + 1] = input_data[j + 1], input_data[j]
+    for i in range(n):
+        swapped = False
 
-    end = time.time()
+        for j in range(0, n - i - 1):
+            if data[j][column_name] > data[j + 1][column_name]:
+                data[j], data[j + 1] = data[j + 1], data[j]
+                swapped = True
 
-    return "Bubble Sort", (end - start)
+        if not swapped:
+            break
 
 
-algorithm_type, time_elapsed = bubble_sort(excel_file)
-print("Algorithm Type:", algorithm_type)
-print("Time Elapsed: %0.5f" % (time_elapsed * 1000), "ms")
+def sort_excel_file(input_file, output_file, column_name):
+    df = pd.read_excel(input_file)
+    data = df.to_dict(orient='records')
+    bubble_sort(data, column_name)
+    sorted_df = pd.DataFrame(data)
+    sorted_df.to_excel(output_file, index=False)
+    print(f"\nSorted data based on '{column_name}' column has been saved to '{output_file}'")
+
+
+input_file = "C:/Users/wenzh/Downloads/Dataset_Cleaned.xlsx"
+output_file = "C:/Users/wenzh/Downloads/Dataset_Cleaned_Sorted.xlsx"
+column_name = input("\nInput the column to sort by: ")
+
+try:
+    sort_excel_file(input_file, output_file, column_name)
+
+except KeyError:
+    print("\nThe column you entered does not exist within the dataset.")
