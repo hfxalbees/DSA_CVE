@@ -1,70 +1,51 @@
 import pandas as pd
 import time
-import tracemalloc
 
-# Load the Excel file using a relative path
-file_path = '..\\CVE data\\CveIdOnly.xlsx'
-df = pd.read_excel(file_path)
+# Define radix sort function for the digits
+def radix_sort(arr):
+    max_len = len(str(max(arr)))
+    for exp in range(max_len):
+        bins = [[] for _ in range(10)]
+        for num in arr:
+            bins[(num // 10**exp) % 10].append(num)
+        arr = [num for bin in bins for num in bin]
+    return arr
 
-# Extract numerical parts from the CVE ID as strings
-cve_numbers = df['CVE ID'].str.replace('-', '')
+# Define the file path for reading and writing
+input_file_path = '..\\CVE data\\filtered_cve_list_USETHIS.xlsx'
+output_file_path = '..\\CVE data\\sorted_cve_list.xlsx'
 
-# Pad the strings with leading zeros to ensure they are all the same length
-max_len = cve_numbers.str.len().max()
-cve_numbers = cve_numbers.str.zfill(max_len)
+# Read the Excel file
+df = pd.read_excel(input_file_path)
 
-def counting_sort_string(arr, exp, max_len):
-    n = len(arr)
-    output = [""] * n
-    count = [0] * 10
+# Extract the year and the digits after the dash
+df['Year'] = df['CVE ID'].apply(lambda x: int(x.split('-')[0]))
+df['Digits'] = df['CVE ID'].apply(lambda x: int(x.split('-')[1]))
 
-    for i in range(n):
-        index = int(arr[i][max_len - exp])
-        count[index] += 1
+# Sort by year first
+df = df.sort_values(by=['Year'])
 
-    for i in range(1, 10):
-        count[i] += count[i - 1]
-
-    i = n - 1
-    while i >= 0:
-        index = int(arr[i][max_len - exp])
-        output[count[index] - 1] = arr[i]
-        count[index] -= 1
-        i -= 1
-
-    for i in range(n):
-        arr[i] = output[i]
-
-def radix_sort_string(arr):
-    max_len = max(len(num) for num in arr)
-    exp = 1
-    while exp <= max_len:
-        counting_sort_string(arr, exp, max_len)
-        exp += 1
-
-# Record start time and memory usage
+# Measure the time taken to sort
 start_time = time.time()
-tracemalloc.start()
 
-# Perform radix sort
-radix_sort_string(cve_numbers)
+# For each year, sort the digits using radix sort
+sorted_rows = []
+for year in df['Year'].unique():
+    year_df = df[df['Year'] == year]
+    sorted_digits = radix_sort(year_df['Digits'].tolist())
+    sorted_year_df = year_df.set_index('Digits').loc[sorted_digits].reset_index()
+    sorted_rows.append(sorted_year_df)
 
-# Record end time and memory usage
+# Concatenate all the sorted dataframes
+sorted_full_df = pd.concat(sorted_rows, ignore_index=True).drop(columns=['Year', 'Digits'])
+
+# Measure the end time and calculate the elapsed time
 end_time = time.time()
-current, peak = tracemalloc.get_traced_memory()
-tracemalloc.stop()
-
-# Print time and space complexity, time taken, and memory used
 time_taken = end_time - start_time
-memory_used = peak / 10**6  # convert to MB
 
-# Time complexity: O(d*(n+b)) where d is the number of digits in the maximum number, n is the number of elements, and b is the base (10 here).
-# Space complexity: O(n+b) where n is the number of elements and b is the base.
+# Export the sorted dataframe to an Excel file
+sorted_full_df.to_excel(output_file_path, index=False)
 
-time_complexity = "O(d*(n+b)) where d is the number of digits in the maximum number, n is the number of elements, and b is the base (10 here)."
-space_complexity = "O(n+b) where n is the number of elements and b is the base."
-
-print(f"Time Complexity: {time_complexity}")
-print(f"Space Complexity: {space_complexity}")
-print(f"Time Taken: {time_taken} seconds")
-print(f"Memory Used: {memory_used} MB")
+# Return the required outputs
+sorting_algorithm = "Radix Sort"
+time_taken, sorting_algorithm, sorted_full_df.head()  # .head() to show the first few rows
