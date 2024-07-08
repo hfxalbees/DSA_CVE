@@ -1,6 +1,6 @@
 import pandas
 
-excel_file = pandas.read_excel("C:/Users/wenzh/Downloads/Dataset.xlsx")
+excel_file = pandas.read_excel("CVE data\\filtered_cve_list_USETHIS.xlsx")
 excel_file_columns = excel_file.columns
 excel_file = excel_file.values.tolist()
 cve_id_length = []
@@ -17,4 +17,4 @@ for i in range(len(excel_file)):
         cve_id_string = "".join(cve_id_string)
         excel_file[i][0] = cve_id_string
 
-cleaned_excel_file = pandas.DataFrame(excel_file, columns = excel_file_columns).to_excel("C:/Users/wenzh/Downloads/Dataset_Cleaned.xlsx")
+cleaned_excel_file = pandas.DataFrame(excel_file, columns = excel_file_columns).to_excel("CVE data\\Dataset_Cleaned.xlsx")

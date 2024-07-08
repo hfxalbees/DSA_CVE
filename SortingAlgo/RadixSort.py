@@ -1,51 +1,85 @@
 import pandas as pd
-import time
 
-# Define radix sort function for the digits
-def radix_sort(arr):
-    max_len = len(str(max(arr)))
-    for exp in range(max_len):
-        bins = [[] for _ in range(10)]
-        for num in arr:
-            bins[(num // 10**exp) % 10].append(num)
-        arr = [num for bin in bins for num in bin]
-    return arr
+# Load the dataset
+file_path = '..\\CVE data\\Dataset_Cleaned.xlsx'
+df = pd.read_excel(file_path)
 
-# Define the file path for reading and writing
-input_file_path = '..\\CVE data\\filtered_cve_list_USETHIS.xlsx'
-output_file_path = '..\\CVE data\\sorted_cve_list.xlsx'
+# Key function to extract the numeric part of the CVE ID or any other column based on the provided key
+def key_func(row, key_column):
+    if key_column == 'CVE ID':
+        parts = row.split('-')
+        return int(parts[0]), int(parts[1])
+    else:
+        return row
 
-# Read the Excel file
-df = pd.read_excel(input_file_path)
+# Define the counting sort function
+def counting_sort(arr, exp, key_column, index, descending=True):
+    n = len(arr)
+    output = [0] * n
+    count = [0] * 10
 
-# Extract the year and the digits after the dash
-df['Year'] = df['CVE ID'].apply(lambda x: int(x.split('-')[0]))
-df['Digits'] = df['CVE ID'].apply(lambda x: int(x.split('-')[1]))
+    # Count occurrences of each digit
+    for i in range(n):
+        index_digit = (key_func(arr[i][key_column], key_column)[index] // exp) % 10
+        count[index_digit] += 1
 
-# Sort by year first
-df = df.sort_values(by=['Year'])
+    # Change count[i] so that count[i] now contains the actual position of this digit in output
+    if descending:
+        for i in range(8, -1, -1):
+            count[i] += count[i + 1]
+    else:
+        for i in range(1, 10):
+            count[i] += count[i - 1]
 
-# Measure the time taken to sort
-start_time = time.time()
+    # Build the output array
+    i = n - 1
+    while i >= 0:
+        index_digit = (key_func(arr[i][key_column], key_column)[index] // exp) % 10
+        output[count[index_digit] - 1] = arr[i]
+        count[index_digit] -= 1
+        i -= 1
 
-# For each year, sort the digits using radix sort
-sorted_rows = []
-for year in df['Year'].unique():
-    year_df = df[df['Year'] == year]
-    sorted_digits = radix_sort(year_df['Digits'].tolist())
-    sorted_year_df = year_df.set_index('Digits').loc[sorted_digits].reset_index()
-    sorted_rows.append(sorted_year_df)
+    # Copy the output array to arr
+    for i in range(n):
+        arr[i] = output[i]
 
-# Concatenate all the sorted dataframes
-sorted_full_df = pd.concat(sorted_rows, ignore_index=True).drop(columns=['Year', 'Digits'])
+# Define the radix sort function
+def radix_sort(arr, key_column):
+    if key_column == 'CVE ID':
+        max_val1 = max(arr, key=lambda x: key_func(x[key_column], key_column)[0])
+        max_val2 = max(arr, key=lambda x: key_func(x[key_column], key_column)[1])
 
-# Measure the end time and calculate the elapsed time
-end_time = time.time()
-time_taken = end_time - start_time
+        # Sort by numeric part first
+        exp = 1
+        while key_func(max_val2, key_column)[1] // exp > 0:
+            counting_sort(arr, exp, key_column, 1, descending=True)
+            exp *= 10
 
-# Export the sorted dataframe to an Excel file
-sorted_full_df.to_excel(output_file_path, index=False)
+        # Sort by year part
+        exp = 1
+        while key_func(max_val1, key_column)[0] // exp > 0:
+            counting_sort(arr, exp, key_column, 0, descending=True)
+            exp *= 10
+    else:
+        # Handle sorting for non-CVE ID columns
+        max_val = max(arr, key=lambda x: key_func(x[key_column], key_column))
+        exp = 1
+        while key_func(max_val, key_column) // exp > 0:
+            counting_sort(arr, exp, key_column, 0, descending=True)
+            exp *= 10
 
-# Return the required outputs
-sorting_algorithm = "Radix Sort"
-time_taken, sorting_algorithm, sorted_full_df.head()  # .head() to show the first few rows
+# Extract the rows from the dataframe
+rows = df.to_dict('records')
+
+# Sort the rows based on the specified column in descending order
+key_column = 'CVE ID'  # Change this to any other column name as needed
+radix_sort(rows, key_column)
+
+# Create a new DataFrame with the sorted data
+sorted_df = pd.DataFrame(rows)
+
+# Save the sorted DataFrame to a new Excel file
+output_file_path = '..\\Temp\\Sorted_Dataset.xlsx'
+sorted_df.to_excel(output_file_path, index=False)
+
+print(f'Sorted dataset has been saved to {output_file_path}')
