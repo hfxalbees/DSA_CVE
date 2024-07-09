@@ -1,85 +1,97 @@
 import pandas as pd
 
-# Load the dataset
-file_path = '..\\CVE data\\Dataset_Cleaned.xlsx'
-df = pd.read_excel(file_path)
 
-# Key function to extract the numeric part of the CVE ID or any other column based on the provided key
-def key_func(row, key_column):
-    if key_column == 'CVE ID':
-        parts = row.split('-')
-        return int(parts[0]), int(parts[1])
-    else:
-        return row
+def preprocess_cve_id(cve_id):
+    """Remove dashes from CVE ID and convert to integer for sorting."""
+    return int(cve_id.replace('-', ''))
 
-# Define the counting sort function
-def counting_sort(arr, exp, key_column, index, descending=True):
-    n = len(arr)
+
+def postprocess_cve_id(cve_id_int):
+    """Convert integer back to CVE ID format with dashes."""
+    cve_str = str(cve_id_int)
+    return f"{cve_str[:4]}-{cve_str[4:10]}-{cve_str[10:]}"
+
+
+def counting_sort(data, column_name, exp):
+    n = len(data)
     output = [0] * n
     count = [0] * 10
 
-    # Count occurrences of each digit
     for i in range(n):
-        index_digit = (key_func(arr[i][key_column], key_column)[index] // exp) % 10
-        count[index_digit] += 1
+        index = (data[i][column_name] // exp) % 10
+        count[index] += 1
 
-    # Change count[i] so that count[i] now contains the actual position of this digit in output
-    if descending:
-        for i in range(8, -1, -1):
-            count[i] += count[i + 1]
-    else:
-        for i in range(1, 10):
-            count[i] += count[i - 1]
+    for i in range(1, 10):
+        count[i] += count[i - 1]
 
-    # Build the output array
     i = n - 1
     while i >= 0:
-        index_digit = (key_func(arr[i][key_column], key_column)[index] // exp) % 10
-        output[count[index_digit] - 1] = arr[i]
-        count[index_digit] -= 1
+        index = (data[i][column_name] // exp) % 10
+        output[count[index] - 1] = data[i]
+        count[index] -= 1
         i -= 1
 
-    # Copy the output array to arr
-    for i in range(n):
-        arr[i] = output[i]
+    for i in range(len(data)):
+        data[i] = output[i]
 
-# Define the radix sort function
-def radix_sort(arr, key_column):
-    if key_column == 'CVE ID':
-        max_val1 = max(arr, key=lambda x: key_func(x[key_column], key_column)[0])
-        max_val2 = max(arr, key=lambda x: key_func(x[key_column], key_column)[1])
+    return data
 
-        # Sort by numeric part first
-        exp = 1
-        while key_func(max_val2, key_column)[1] // exp > 0:
-            counting_sort(arr, exp, key_column, 1, descending=True)
-            exp *= 10
 
-        # Sort by year part
-        exp = 1
-        while key_func(max_val1, key_column)[0] // exp > 0:
-            counting_sort(arr, exp, key_column, 0, descending=True)
-            exp *= 10
+def radix_sort(data, column_name):
+    max_val = max(data, key=lambda x: x[column_name])[column_name]
+
+    exp = 1
+    while max_val // exp > 0:
+        data = counting_sort(data, column_name, exp)
+        exp *= 10
+    print(data.head())
+    return data
+
+
+def sort_excel_file(input_file, output_file, column_name):
+    try:
+        df = pd.read_excel(input_file)
+    except FileNotFoundError:
+        print(f"\nError: The file '{input_file}' does not exist.")
+        return
+    except Exception as e:
+        print(f"\nError: {e}")
+        return
+
+    if column_name not in df.columns:
+        print(f"\nError: The column '{column_name}' does not exist in the dataset.")
+        return
+
+    # Check column type
+    if df[column_name].dtype == 'object':
+        # Preprocess CVE IDs
+        try:
+            df['temp_sort_column'] = df[column_name].apply(preprocess_cve_id)
+        except Exception as e:
+            print(f"\nError while preprocessing '{column_name}': {e}")
+            return
+
+        data = df.to_dict(orient='records')
+        sorted_data = radix_sort(data, 'temp_sort_column')
+
+        # Convert back to original format
+        sorted_df = pd.DataFrame(sorted_data)
+        sorted_df[column_name] = sorted_df['temp_sort_column'].apply(postprocess_cve_id)
+        sorted_df = sorted_df.drop(columns=['temp_sort_column'])
+
     else:
-        # Handle sorting for non-CVE ID columns
-        max_val = max(arr, key=lambda x: key_func(x[key_column], key_column))
-        exp = 1
-        while key_func(max_val, key_column) // exp > 0:
-            counting_sort(arr, exp, key_column, 0, descending=True)
-            exp *= 10
+        # For numeric columns
+        sorted_df = df.sort_values(by=[column_name])
 
-# Extract the rows from the dataframe
-rows = df.to_dict('records')
+    try:
+        sorted_df.to_excel(output_file, index=False)
+        print(f"Sorted data based on '{column_name}' column has been saved to '{output_file}'")
+    except Exception as e:
+        print(f"\nError: {e}")
 
-# Sort the rows based on the specified column in descending order
-key_column = 'CVE ID'  # Change this to any other column name as needed
-radix_sort(rows, key_column)
 
-# Create a new DataFrame with the sorted data
-sorted_df = pd.DataFrame(rows)
+input_file = '..\\CVE data\\Dataset_Cleaned.xlsx'
+output_file = '..\\Temp\\cve.xlsx'
+column_name = input("Input a column name to sort by: ")
 
-# Save the sorted DataFrame to a new Excel file
-output_file_path = '..\\Temp\\Sorted_Dataset.xlsx'
-sorted_df.to_excel(output_file_path, index=False)
-
-print(f'Sorted dataset has been saved to {output_file_path}')
+sort_excel_file(input_file, output_file, column_name)
