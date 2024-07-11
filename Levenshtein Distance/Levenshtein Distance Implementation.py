@@ -1,6 +1,6 @@
 import numpy
 
-dictionary_path = "100_common_words.txt"
+dictionary_path = "C:/Users/wenzh/Downloads/Levenshtein Distance/100_common_words.txt"
 
 with open(dictionary_path, "r") as dictionary:
     dictionary_data = dictionary.read().splitlines()
@@ -37,15 +37,23 @@ def levenshtein(token1, token2):
 user_input = input("\nInput a string: ")
 closely_matched_word_list = []
 
+exact_match_found = False
+
 for data in dictionary_data:
-    if levenshtein(user_input, data) == 0:
+    distance = levenshtein(user_input, data)
+
+    if distance == 0:
+        exact_match_found = True
         break
-    elif levenshtein(user_input, data) < 2:
+    elif distance < 2:
         closely_matched_word_list.append(data)
 
-if len(closely_matched_word_list) == 0:
-    print("\nYou have entered the following string:", user_input)
+if exact_match_found:
+    print(f"\nYou have entered the following string:", user_input)
 else:
-    print("\nIt looks like there is a typo in your input.")
-    print("Did you mean any of the following?")
-    print(closely_matched_word_list)
+    if len(closely_matched_word_list) > 0:
+        print("\nIt looks like there is a typo in your input.")
+        print("Did you mean any of the following?")
+        print(closely_matched_word_list)
+    else:
+        print("\nIt looks like there are no similar words found within the dictionary.")
