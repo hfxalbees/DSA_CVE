@@ -3,16 +3,28 @@
   <head>
     <title>Upload File</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      .upload-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 40vh;
+      }
+      .upload-form {
+        display: flex;
+        align-items: center;
+      }
+    </style>
   </head>
   <body>
-    <div class="container mt-5">
-      <h1 class="text-center">Upload a .xlsx file to search</h1>
-      <form method="POST" action="/upload" enctype="multipart/form-data" class="mt-4">
-        <div class="form-group">
-          <input type="file" name="file" class="form-control-file">
-        </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
-      </form>
+    <div class="container upload-container">
+      <div>
+        <h1 class="text-center mb-4">Upload a .xlsx file to search</h1>
+        <form method="POST" action="/upload" enctype="multipart/form-data" class="upload-form">
+          <input type="file" name="file" class="form-control-file mr-2">
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+      </div>
     </div>
   </body>
 </html>
