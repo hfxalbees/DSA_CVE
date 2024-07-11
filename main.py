@@ -1,9 +1,14 @@
+from flask import Flask, request, render_template, redirect, url_for
 import pandas as pd
-from flask import Flask, render_template, request, send_file, url_for
-from CleaningScripts import TopRansomwareGang
-from SortingAlgo import PigeonHoleSort , SelectionSort
+from werkzeug.utils import secure_filename
+import os
+from SortingAlgo import PigeonHoleSort
+from search_algo import exponential_search
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'CVE data'
+app.config['DOWNLOAD_FOLDER'] = 'Sorted CVE'
+app.config['ALLOWED_EXTENSIONS'] = {'xlsx'}
 
 # file_path = 'CVE data/CVE_Data_2023.xlsx'
 
@@ -15,27 +20,49 @@ app = Flask(__name__)
 # ransomware_df = pd.read_excel(ransomware_file_path)
 
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # Handle file upload logic here
-    return 'File uploaded successfully'
+    if 'file' not in request.files:
+        return 'No file part'
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file'
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return redirect(url_for('sort_file', filename=filename))
+    else:
+        return 'Invalid file format. Only .xlsx files are allowed.'
 
-@app.route('/sorting', methods=['GET'])
-def sorting():
-    sort_key = request.args.get('sortKey')
-    # Implement sorting logic based on sort_key
-    return f'Sorting by {sort_key}'
+@app.route('/sort_file/<filename>', methods=['GET', 'POST'])
+def sort_file(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    df = pd.read_excel(file_path)
+    column_name = 'CVE ID'  # Replace with the actual column name to sort by
+    sorted_df, elapsed_time = PigeonHoleSort.pigeonhole_sort_with_dataframe(df, PigeonHoleSort.custom_sort_key, column_name)
+    sorted_df_top10 = sorted_df.head(10)
 
-@app.route('/searching', methods=['GET'])
-def searching():
-    search_key = request.args.get('searchKey')
-    search_term = request.args.get('searchTerm')
-    # Implement searching logic based on search_key and search_term
-    return f'Searching by {search_key} for {search_term}'
+    search_term = request.form.get('search_term')
+    if search_term:
+        search_type, search_time, search_result = exponential_search.exponential_search_dataframe(sorted_df, search_term, column_name)
+        if search_result is not None:
+            search_result_html = search_result.to_frame().T.to_html(classes='table table-striped')
+            sorted_df_html = f"<p>Search completed in {search_time:.2f} ms using {search_type}. Found result:</p>{search_result_html}"
+        else:
+            sorted_df_html = f"<p>Search completed in {search_time:.2f} ms using {search_type}. No result found.</p>"
+    else:
+        sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')
+    
+    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html)
+
 
 # @app.route('/cve')
 # def cve():

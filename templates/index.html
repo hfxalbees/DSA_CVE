@@ -1,78 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel File Operations</title>
-    <!-- Bootstrap CSS (or any other preferred CSS framework) -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <!-- Optional: Add your custom CSS here -->
-    <style>
-        /* Custom styles can go here */
-    </style>
-</head>
-<body>
+  <head>
+    <title>Upload File</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
     <div class="container mt-5">
-        <h2 class="mb-4">Upload Excel File</h2>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="fileUpload">Choose Excel File:</label>
-                <input type="file" class="form-control-file" id="fileUpload" name="file" accept=".xlsx">
-            </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
-        </form>
-
-        <!-- Tabs for sorting and searching -->
-        <ul class="nav nav-tabs mt-4" id="myTab" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link" id="sorting-tab" data-toggle="tab" href="#sorting" role="tab" aria-controls="sorting" aria-selected="true">Sorting</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="searching-tab" data-toggle="tab" href="#searching" role="tab" aria-controls="searching" aria-selected="false">Searching</a>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="myTabContent">
-            <!-- Sorting tab content -->
-            <div class="tab-pane fade show active" id="sorting" role="tabpanel" aria-labelledby="sorting-tab">
-                <form action="/sorting" method="get">
-                    <div class="form-group">
-                        <label for="sortKey">Sort by:</label>
-                        <select class="form-control" id="sortKey" name="sortKey">
-                            <option value="cve_id">CVE ID</option>
-                            <option value="date_released">Date Released</option>
-                            <option value="severity">Severity</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Sort</button>
-                </form>
-            </div>
-            <!-- Searching tab content -->
-            <div class="tab-pane fade" id="searching" role="tabpanel" aria-labelledby="searching-tab">
-                <form action="/searching" method="get">
-                    <div class="form-group">
-                        <label for="searchKey">Search by:</label>
-                        <select class="form-control" id="searchKey" name="searchKey">
-                            <option value="cve_id">CVE ID</option>
-                            <option value="date_released">Date Released</option>
-                            <option value="severity">Severity</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="searchTerm">Search Term:</label>
-                        <input type="text" class="form-control" id="searchTerm" name="searchTerm">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Search</button>
-                </form>
-            </div>
+      <h1 class="text-center">Upload a .xlsx file to search</h1>
+      <form method="POST" action="/upload" enctype="multipart/form-data" class="mt-4">
+        <div class="form-group">
+          <input type="file" name="file" class="form-control-file">
         </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
     </div>
-
-    <!-- Bootstrap JS and other scripts if needed -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js" integrity="sha384-TkD1B2nE4XK2voC/6F2kDpOp0mCqqDHr2XS85weNIz5SznJXMcfTDOkLwY92jblD" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-b4v8t+ebtbV5HgSqc2hWV9vrWkWqlZ6xLgd8vyR6gY6P3z4tH6EL5nZciRSJo0s6" crossorigin="anonymous"></script>
-</body>
+  </body>
 </html>
