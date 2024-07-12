@@ -9,7 +9,7 @@
       <h1 class="text-center">Enter a term to search</h1>
       <!-- <p class="text-center">Sorting completed in {{ elapsed_time }} seconds.</p> -->
       <form method="POST" class="form-inline justify-content-center mb-4">
-        <input type="text" name="search_term" class="form-control mr-2" placeholder="Search term">
+        <input type="text" name="search_term" class="form-control mr-2" placeholder="Search term" value="{{ search_term if search_term else '' }}">
         <button type="submit" class="btn btn-primary">Search</button>
       </form>
       <div class="table-responsive">

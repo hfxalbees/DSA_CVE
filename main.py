@@ -61,7 +61,7 @@ def sort_file(filename):
     else:
         sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')
     
-    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html)
+    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term)
 
 
 # @app.route('/cve')
