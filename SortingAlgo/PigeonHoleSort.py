@@ -53,6 +53,6 @@ def pigeonhole_sort_with_dataframe(df, key_func, column_name):
     end_time = time.time()
     elapsed_time = end_time - start_time
     elapsed_time = round(elapsed_time, 2)
-    print(f"Sorting completed in {elapsed_time:.2f} seconds.")
+    # print(f"Sorting completed in {elapsed_time:.2f} seconds.")
 
     return sorted_df, elapsed_time

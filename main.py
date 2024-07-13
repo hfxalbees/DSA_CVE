@@ -3,7 +3,7 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 import os
 from SortingAlgo import PigeonHoleSort
-from search_algo import exponential_search
+from search_algo import exponential_search, kmp
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'CVE data'
@@ -51,18 +51,18 @@ def sort_file(filename):
     sorted_df_top10 = sorted_df.head(10)
 
     search_term = request.form.get('search_term')
-    if search_term:
-        search_type, search_time, search_result = exponential_search.exponential_search_dataframe(sorted_df, search_term, column_name)
-        if search_result is not None:
-            search_result_html = search_result.to_frame().T.to_html(classes='table table-striped')
-            sorted_df_html = f"<p>Search completed in {search_time:.2f} ms using {search_type}. Found result:</p>{search_result_html}"
+    search_column = request.form.get('search_column')
+    if search_term and search_column:
+        search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
+        if not search_results.empty:
+            search_results_html = search_results.to_html(classes='table table-striped')
+            sorted_df_html = f"<p>Search results for '{search_term}' in '{search_column}':</p>{search_results_html}"
         else:
-            sorted_df_html = f"<p>Search completed in {search_time:.2f} ms using {search_type}. No result found.</p>"
+            sorted_df_html = f"<p>No results found for '{search_term}' in '{search_column}'.</p>"
     else:
         sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')
     
-    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term)
-
+    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns)
 
 # @app.route('/cve')
 # def cve():

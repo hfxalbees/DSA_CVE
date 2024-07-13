@@ -1,10 +1,5 @@
 import pandas as pd
 
-# Read the Excel file and convert it into a DataFrame
-file_path = '..\\CVE data\\filtered_cve_list_USETHIS.xlsx'
-df = pd.read_excel(file_path)
-
-# Knuth-Morris-Pratt (KMP) Algorithm for pattern searching
 def compute_lps(pattern):
     lps = [0] * len(pattern)
     length = 0
@@ -44,21 +39,11 @@ def kmp_search(text, pattern):
 
     return False  # Pattern not found
 
-# Function to search for CVE ID or description in the DataFrame
-def search_cve_or_description(df, search_term):
-    result = []
+def search_dataframe_kmp(df, search_term, column_name):
     search_term = search_term.lower()
+    result = []
     for index, row in df.iterrows():
-        cve_id = row['CVE ID'].lower()
-        description = row['Description'].lower()
-        if kmp_search(cve_id, search_term) or kmp_search(description, search_term):
+        column_value = str(row[column_name]).lower()
+        if kmp_search(column_value, search_term):
             result.append(row)
     return pd.DataFrame(result)
-
-# Example usage
-search_term = 'cros'  # Replace with the search term you want to use
-search_results = search_cve_or_description(df, search_term)
-
-
-# Print the search results
-print(search_results)
