@@ -2,9 +2,10 @@ from flask import Flask, request, render_template, redirect, url_for, send_from_
 import pandas as pd
 from werkzeug.utils import secure_filename
 import os
-from SortingAlgo import PigeonHoleSort  # Adjust the import based on your file structure
-from search_algo import kmp  # Import the KMP functions
-from analysis_code import analyze_data  # Import the analysis functions
+from SortingAlgo import PigeonHoleSort
+from search_algo import kmp
+from analysis_code import analyze_data
+from Levenshtein import levenshtein_distance
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'CVE data'
@@ -21,7 +22,6 @@ custom_titles = {
     "impact_score_per_attack_type.png": "Average Impact Score per Attack Type",
     "severity_change_over_years.png": "Severity Change of Different Attack Types over Years"
 }
-
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -56,14 +56,18 @@ def sort_file(filename):
     search_term = request.form.get('search_term')
     search_column = request.form.get('search_column')
     result_count = 0
+    typo_suggestions = []
+
     if search_term and search_column:
         search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
         result_count = len(search_results)
-        if not search_results.empty:
+        if search_results.empty:
+            typo_suggestions = levenshtein_distance.find_similar_words(sorted_df, search_column, search_term, threshold=2)
+            typo_suggestions_html = ', '.join(typo_suggestions)
+            sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'. Did you mean any of these?</p><p>{typo_suggestions_html}</p>"
+        else:
             search_results_html = search_results.to_html(classes='table table-striped')
             sorted_df_html = f"<p>Search results for '{search_term}' in '{search_column}' ({result_count} results found):</p>{search_results_html}"
-        else:
-            sorted_df_html = f"<p>No results found for '{search_term}' in '{search_column}'.</p>"
     else:
         result_count = len(sorted_df_top10)
         sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')
@@ -72,7 +76,7 @@ def sort_file(filename):
     analysis_output_dir = os.path.join(app.config['ANALYSIS_FOLDER'], filename)
     analyze_data.analyze_data(sorted_df, analysis_output_dir)
     
-    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles)
+    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles, typo_suggestions=typo_suggestions)
 
 @app.route('/analysis/<path:filepath>')
 def send_analysis_file(filepath):

@@ -22,12 +22,10 @@ def levenshtein(token1, token2):
 
     return distance[len(token1)][len(token2)]
 
-def find_closest_match(search_term, column_data, threshold=2):
-    min_distance = float('inf')
-    closest_match = search_term
-    for value in column_data:
-        distance = levenshtein(search_term.lower(), str(value).lower())
-        if distance < min_distance and distance <= threshold:
-            min_distance = distance
-            closest_match = value
-    return closest_match if min_distance <= threshold else search_term
+def find_similar_words(df, column, search_term, threshold=2):
+    similar_words = set()
+    for data in df[column].astype(str):
+        distance = levenshtein(search_term.lower(), data.lower())
+        if distance < threshold:
+            similar_words.add(data)
+    return similar_words

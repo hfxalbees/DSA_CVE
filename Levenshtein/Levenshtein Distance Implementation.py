@@ -1,7 +1,7 @@
 import numpy
 import pandas
 
-excel_file = pandas.read_csv("C:/Users/wenzh/Downloads/Dataset.csv")
+excel_file = pandas.read_csv("CVE data/FINAL_DATASET.csv")
 
 
 def levenshtein(token1, token2):
