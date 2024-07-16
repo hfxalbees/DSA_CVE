@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+# Set the backend to 'Agg' to avoid using any GUI backend
+plt.switch_backend('Agg')
+
 def analyze_data(df, output_dir):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

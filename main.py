@@ -74,7 +74,6 @@ def sort_file(filename):
     
     return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles)
 
-
 @app.route('/analysis/<path:filepath>')
 def send_analysis_file(filepath):
     return send_from_directory(app.config['ANALYSIS_FOLDER'], filepath)
