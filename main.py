@@ -12,6 +12,7 @@ app.config['UPLOAD_FOLDER'] = 'CVE data'
 app.config['DOWNLOAD_FOLDER'] = 'Sorted CVE'
 app.config['ANALYSIS_FOLDER'] = 'Analysis Results'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx'}
+app.config['RESULTS_PER_PAGE'] = 20
 
 custom_titles = {
     "cia_impact_per_year.png": "Impact Scores per Year",
@@ -51,12 +52,13 @@ def sort_file(filename):
     df = pd.read_excel(file_path)
     column_name = 'CVE ID'  # Replace with the actual column name to sort by
     sorted_df, elapsed_time = PigeonHoleSort.pigeonhole_sort_with_dataframe(df, PigeonHoleSort.custom_sort_key, column_name)
-    sorted_df_top10 = sorted_df.head(10)
+    sorted_df_top10 = sorted_df.head(20)
 
     search_term = request.form.get('search_term')
     search_column = request.form.get('search_column')
     result_count = 0
     typo_suggestions = []
+    sorted_df_html = ""
 
     if search_term and search_column:
         search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
@@ -64,9 +66,16 @@ def sort_file(filename):
         if search_results.empty:
             typo_suggestions = levenshtein_distance.find_similar_words(sorted_df, search_column, search_term, threshold=2)
             typo_suggestions_html = ', '.join(typo_suggestions)
-            sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'. Did you mean any of these?</p><p>{typo_suggestions_html}</p>"
+            sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}.</p><p>Did you mean any of these? {typo_suggestions_html}</p>"
+            
+            # Display rows with suggested word
+            if typo_suggestions:
+                suggested_word = next(iter(typo_suggestions))  # Take the first suggestion
+                suggested_results = sorted_df[sorted_df[search_column].str.lower() == suggested_word.lower()]
+                suggested_results_html = paginate_dataframe(suggested_results, page=1)
+                sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}':</p>{suggested_results_html}"
         else:
-            search_results_html = search_results.to_html(classes='table table-striped')
+            search_results_html = paginate_dataframe(search_results, page=1)
             sorted_df_html = f"<p>Search results for '{search_term}' in '{search_column}' ({result_count} results found):</p>{search_results_html}"
     else:
         result_count = len(sorted_df_top10)
@@ -77,6 +86,14 @@ def sort_file(filename):
     analyze_data.analyze_data(sorted_df, analysis_output_dir)
     
     return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles, typo_suggestions=typo_suggestions)
+
+def paginate_dataframe(df, page):
+    results_per_page = app.config['RESULTS_PER_PAGE']
+    total_pages = (len(df) // results_per_page) + 1
+    start = (page - 1) * results_per_page
+    end = start + results_per_page
+    page_df = df.iloc[start:end]
+    return page_df.to_html(classes='table table-striped')
 
 @app.route('/analysis/<path:filepath>')
 def send_analysis_file(filepath):

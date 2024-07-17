@@ -61,7 +61,7 @@
             </div>
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
-        <p class="text-center">Results found: {{ result_count }}</p>
+        <!-- <p class="text-center">Results found: {{ result_count }}</p> -->
         <div class="table-container">
             <div class="table-responsive">
                 <table class="table table-striped">
@@ -69,16 +69,6 @@
                 </table>
             </div>
         </div>
-        {% if typo_suggestions %}
-        <div class="text-center">
-            <p>Did you mean:</p>
-            <ul class="list-inline">
-                {% for suggestion in typo_suggestions %}
-                <li class="list-inline-item">{{ suggestion }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
     </div>
     <div id="analysis-tab" style="display:none;">
         <h1 class="text-center">Data Analysis</h1>
