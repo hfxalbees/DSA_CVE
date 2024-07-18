@@ -5,7 +5,7 @@ import os
 from SortingAlgo import PigeonHoleSort
 from search_algo import kmp
 from analysis_code import analyze_data
-from Levenshtein import levenshtein_distance
+from Levenshtein import levenshtein_distance, levenshtein_distance_wit_early_termination
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'CVE data'
@@ -64,9 +64,13 @@ def sort_file(filename):
         search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
         result_count = len(search_results)
         if search_results.empty:
-            typo_suggestions = levenshtein_distance.find_similar_words(sorted_df, search_column, search_term, threshold=2)
+            typo_suggestions = levenshtein_distance_wit_early_termination.find_similar_words(sorted_df, search_column, search_term, threshold=2)
             typo_suggestions_html = ', '.join(typo_suggestions)
-            sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}.</p><p>Did you mean any of these? {typo_suggestions_html}</p>"
+            if typo_suggestions_html:
+                sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'.</p><p>Did you mean any of these? {typo_suggestions_html}</p>"
+            else:
+                sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'.</p>"
+
             
             # Display rows with suggested word
             if typo_suggestions:
