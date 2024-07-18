@@ -64,7 +64,7 @@ def sort_file(filename):
         search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
         result_count = len(search_results)
         if search_results.empty:
-            typo_suggestions = levenshtein_distance_wit_early_termination.find_similar_words(sorted_df, search_column, search_term, threshold=2)
+            typo_suggestions = levenshtein_distance_wit_early_termination.find_similar_words(sorted_df, search_column, search_term, threshold=1)
             typo_suggestions_html = ', '.join(typo_suggestions)
             if typo_suggestions_html:
                 sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'.</p><p>Did you mean any of these? {typo_suggestions_html}</p>"
@@ -75,12 +75,13 @@ def sort_file(filename):
             # Display rows with suggested word
             if typo_suggestions:
                 suggested_word = next(iter(typo_suggestions))  # Take the first suggestion
-                suggested_results = sorted_df[sorted_df[search_column].str.lower() == suggested_word.lower()]
+                suggested_results = kmp.search_dataframe_kmp(sorted_df, suggested_word, search_column)
+                result_count = len(suggested_results)
                 suggested_results_html = paginate_dataframe(suggested_results, page=1)
-                sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}':</p>{suggested_results_html}"
+                sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}' in '{search_column}'({result_count} results found):</p>{suggested_results_html}"
         else:
             search_results_html = paginate_dataframe(search_results, page=1)
-            sorted_df_html = f"<p>Search results for '{search_term}' in '{search_column}' ({result_count} results found):</p>{search_results_html}"
+            sorted_df_html = f"<p>Showing results for '{search_term}' in '{search_column}' ({result_count} results found):</p>{search_results_html}"
     else:
         result_count = len(sorted_df_top10)
         sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')

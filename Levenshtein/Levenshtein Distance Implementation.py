@@ -1,7 +1,7 @@
 import numpy
 import pandas
 
-excel_file = pandas.read_csv("CVE data/FINAL_DATASET.csv")
+excel_file = pandas.read_excel("CVE data/sampled_data2.xlsx")
 
 def levenshtein(token1, token2):
     distance = numpy.zeros((len(token1) + 1, len(token2) + 1))
