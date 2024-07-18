@@ -52,13 +52,27 @@ def sort_file(filename):
     df = pd.read_excel(file_path)
     column_name = 'CVE ID'  # Replace with the actual column name to sort by
     sorted_df, elapsed_time = PigeonHoleSort.pigeonhole_sort_with_dataframe(df, PigeonHoleSort.custom_sort_key, column_name)
-    sorted_df_top10 = sorted_df.head(20)
+    
+    # Get the current page number from the query parameter
+    page = int(request.args.get('page', 1))
 
-    search_term = request.form.get('search_term')
-    search_column = request.form.get('search_column')
+    # Check if a new search is submitted
+    new_search_term = request.form.get('search_term')
+    new_search_column = request.form.get('search_column')
+
+    if new_search_term and new_search_column:
+        search_term = new_search_term
+        search_column = new_search_column
+        page = 1  # Reset to first page on new search
+    else:
+        search_term = request.args.get('search_term')
+        search_column = request.args.get('search_column')
+
     result_count = 0
     typo_suggestions = []
     sorted_df_html = ""
+    next_url = None
+    prev_url = None
 
     if search_term and search_column:
         search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
@@ -71,34 +85,45 @@ def sort_file(filename):
             else:
                 sorted_df_html = f"<p>No exact results found for '{search_term}' in '{search_column}'.</p>"
 
-            
-            # Display rows with suggested word
             if typo_suggestions:
                 suggested_word = next(iter(typo_suggestions))  # Take the first suggestion
                 suggested_results = kmp.search_dataframe_kmp(sorted_df, suggested_word, search_column)
                 result_count = len(suggested_results)
-                suggested_results_html = paginate_dataframe(suggested_results, page=1)
-                sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}' in '{search_column}'({result_count} results found):</p>{suggested_results_html}"
+                sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}' in '{search_column}' ({result_count} results found):</p>"
+                sorted_df_html += paginate_dataframe(suggested_results, page)
+                
+                # Generate next and previous URLs for suggested results
+                next_url = f"/sort_file/{filename}?page={page + 1}&search_term={suggested_word}&search_column={search_column}" if (page * app.config['RESULTS_PER_PAGE']) < len(suggested_results) else None
+                prev_url = f"/sort_file/{filename}?page={page - 1}&search_term={suggested_word}&search_column={search_column}" if page > 1 else None
         else:
-            search_results_html = paginate_dataframe(search_results, page=1)
-            sorted_df_html = f"<p>Showing results for '{search_term}' in '{search_column}' ({result_count} results found):</p>{search_results_html}"
+            sorted_df_html = f"<p>Showing results for '{search_term}' in '{search_column}' ({result_count} results found):</p>"
+            sorted_df_html += paginate_dataframe(search_results, page)
+            
+            # Generate next and previous URLs for search results
+            next_url = f"/sort_file/{filename}?page={page + 1}&search_term={search_term}&search_column={search_column}" if (page * app.config['RESULTS_PER_PAGE']) < len(search_results) else None
+            prev_url = f"/sort_file/{filename}?page={page - 1}&search_term={search_term}&search_column={search_column}" if page > 1 else None
     else:
-        result_count = len(sorted_df_top10)
-        sorted_df_html = sorted_df_top10.to_html(classes='table table-striped')
+        result_count = len(sorted_df)
+        sorted_df_html = paginate_dataframe(sorted_df, page)
+        
+        # Generate next and previous URLs for the sorted DataFrame
+        next_url = f"/sort_file/{filename}?page={page + 1}" if (page * app.config['RESULTS_PER_PAGE']) < len(sorted_df) else None
+        prev_url = f"/sort_file/{filename}?page={page - 1}" if page > 1 else None
 
     # Generate analysis
     analysis_output_dir = os.path.join(app.config['ANALYSIS_FOLDER'], filename)
     analyze_data.analyze_data(sorted_df, analysis_output_dir)
     
-    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles, typo_suggestions=typo_suggestions)
+    return render_template('search.html', elapsed_time=elapsed_time, sorted_df_html=sorted_df_html, search_term=search_term, search_column=search_column, columns=df.columns, result_count=result_count, analysis_files=os.listdir(analysis_output_dir), analysis_dir=filename, custom_titles=custom_titles, typo_suggestions=typo_suggestions, next_url=next_url, prev_url=prev_url)
 
 def paginate_dataframe(df, page):
     results_per_page = app.config['RESULTS_PER_PAGE']
-    total_pages = (len(df) // results_per_page) + 1
     start = (page - 1) * results_per_page
     end = start + results_per_page
     page_df = df.iloc[start:end]
     return page_df.to_html(classes='table table-striped')
+
+
 
 @app.route('/analysis/<path:filepath>')
 def send_analysis_file(filepath):
