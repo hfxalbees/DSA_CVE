@@ -3,7 +3,7 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 import os
 from SortingAlgo import PigeonHoleSort
-from search_algo import kmp
+from search_algo import kmp, gallop_search
 from analysis_code import analyze_data
 from Levenshtein import levenshtein_distance, levenshtein_distance_wit_early_termination
 
@@ -75,7 +75,15 @@ def sort_file(filename):
     prev_url = None
 
     if search_term and search_column:
-        search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
+        if search_column == 'CVE ID':
+            search_results = gallop_search.gallop_search_dataframe(sorted_df, search_column, search_term)
+            if search_results:
+                search_results = pd.DataFrame([search_results])
+            else:
+                search_results = pd.DataFrame()
+        else:
+            search_results = kmp.search_dataframe_kmp(sorted_df, search_term, search_column)
+
         result_count = len(search_results)
         if search_results.empty:
             typo_suggestions = levenshtein_distance_wit_early_termination.find_similar_words(sorted_df, search_column, search_term, threshold=1)
@@ -87,7 +95,15 @@ def sort_file(filename):
 
             if typo_suggestions:
                 suggested_word = next(iter(typo_suggestions))  # Take the first suggestion
-                suggested_results = kmp.search_dataframe_kmp(sorted_df, suggested_word, search_column)
+                if search_column == 'CVE ID':
+                    suggested_results = gallop_search.gallop_search_dataframe(sorted_df, search_column, suggested_word)
+                    if suggested_results:
+                        suggested_results = pd.DataFrame([suggested_results])
+                    else:
+                        suggested_results = pd.DataFrame()
+                else:
+                    suggested_results = kmp.search_dataframe_kmp(sorted_df, suggested_word, search_column)
+                    
                 result_count = len(suggested_results)
                 sorted_df_html += f"<p>Showing results for suggested word '{suggested_word}' in '{search_column}' ({result_count} results found):</p>"
                 sorted_df_html += paginate_dataframe(suggested_results, page)
