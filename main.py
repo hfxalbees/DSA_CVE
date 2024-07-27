@@ -139,8 +139,6 @@ def paginate_dataframe(df, page):
     page_df = df.iloc[start:end]
     return page_df.to_html(classes='table table-striped')
 
-
-
 @app.route('/analysis/<path:filepath>')
 def send_analysis_file(filepath):
     return send_from_directory(app.config['ANALYSIS_FOLDER'], filepath)
